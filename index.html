@@ -90,7 +90,9 @@ h1,h2,h3{font-family:'Playfair Display',serif;font-weight:700}
 (function(){
 "use strict";
 
-const USERS={admin:"1234",john:"pass"};
+function validatePassword(p){return p.length>=8&&/[A-Z]/.test(p)&&/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(p);}
+function getRegisteredUsers(){try{return JSON.parse(localStorage.getItem("sw_users")||"{}")}catch{return{}}}
+function saveRegisteredUsers(obj){localStorage.setItem("sw_users",JSON.stringify(obj))}
 const CATEGORIES=[
 {name:"Food & Dining",emoji:"🍽",color:"#e67e22"},
 {name:"Transport",emoji:"🚗",color:"#3498db"},
@@ -162,16 +164,25 @@ app.innerHTML=`
 <div id="login-error" class="error" style="display:none"></div>
 <input id="l-user" placeholder="Username" autocomplete="off">
 <input id="l-pass" type="password" placeholder="Password">
-<button class="btn" id="l-btn">Sign In</button>
-<p style="margin-top:16px;font-size:.78rem;color:#999">Demo: admin/1234 or john/pass</p>
+<button class="btn" id="l-btn">Sign In / Register</button>
+<p style="margin-top:16px;font-size:.78rem;color:#999">Password: min 8 chars, 1 uppercase, 1 special character.<br>New username? You'll be registered automatically.</p>
 </div>
 </div>`;
 const btn=document.getElementById("l-btn");
 const doLogin=()=>{
 const u=document.getElementById("l-user").value.trim();
 const p=document.getElementById("l-pass").value;
-if(USERS[u]&&USERS[u]===p){currentUser=u;activeTab="dashboard";render();}
-else{const e=document.getElementById("login-error");e.textContent="Invalid credentials";e.style.display="block";}
+const errEl=document.getElementById("login-error");
+if(!u){errEl.textContent="Please enter a username.";errEl.style.display="block";return;}
+if(!validatePassword(p)){errEl.textContent="Password must be at least 8 characters with 1 uppercase letter and 1 special character.";errEl.style.display="block";return;}
+const users=getRegisteredUsers();
+if(users[u]){
+if(users[u]===p){currentUser=u;activeTab="dashboard";render();}
+else{errEl.textContent="Incorrect password for this username.";errEl.style.display="block";}
+}else{
+users[u]=p;saveRegisteredUsers(users);
+currentUser=u;activeTab="dashboard";render();
+}
 };
 btn.onclick=doLogin;
 document.getElementById("l-pass").onkeydown=e=>{if(e.key==="Enter")doLogin()};
