@@ -1,26 +1,542 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- TODO: Set the document title to the name of your application -->
-    <title>Lovable App</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spendwise — Expense Tracker</title>
+<meta name="description" content="Spendwise: A beautiful, fully client-side expense tracker with analytics and PDF export.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--primary:#2d5a27;--primary-light:#3a7a32;--primary-dark:#1e3d1a;
+--bg:#f7f6f2;--card:#ffffff;--text:#222;--text-muted:#666;
+--border:#e0ddd5;--shadow:0 2px 12px rgba(0,0,0,.07);
+--radius:13px;
+--cat-food:#e67e22;--cat-transport:#3498db;--cat-shopping:#9b59b6;
+--cat-utilities:#1abc9c;--cat-health:#e74c3c;--cat-entertainment:#f39c12;
+--cat-education:#2980b9;--cat-other:#888780;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+h1,h2,h3{font-family:'Playfair Display',serif;font-weight:700}
+.header{position:sticky;top:0;z-index:100;background:var(--primary);color:#fff;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:58px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.header .logo{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700}
+.header .user-info{display:flex;align-items:center;gap:12px;font-size:.9rem}
+.header .user-info button{background:rgba(255,255,255,.18);border:none;color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.85rem;transition:background .2s}
+.header .user-info button:hover{background:rgba(255,255,255,.3)}
+.nav{display:flex;gap:4px}
+.nav button{background:none;border:none;color:rgba(255,255,255,.7);padding:8px 16px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:500;border-radius:8px;transition:all .2s}
+.nav button.active,.nav button:hover{background:rgba(255,255,255,.18);color:#fff}
+.main{max-width:960px;margin:0 auto;padding:20px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:16px}
+.card h3{margin-bottom:12px;font-size:1.05rem}
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:18px}
+.stat-card{text-align:center;padding:18px 14px}
+.stat-card .label{font-size:.8rem;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.stat-card .value{font-size:1.6rem;font-weight:700;font-family:'Playfair Display',serif}
+.stat-card .value.green{color:var(--primary)}
+.stat-card .value.red{color:var(--cat-health)}
+.stat-card .value.orange{color:var(--cat-food)}
+.progress-wrap{background:#e8e6df;border-radius:20px;height:14px;overflow:hidden;margin:8px 0 14px}
+.progress-bar{height:100%;border-radius:20px;transition:width .5s ease,background .3s}
+.month-select{padding:8px 14px;border-radius:8px;border:1px solid var(--border);font-family:'DM Sans',sans-serif;font-size:.9rem;background:#fff;cursor:pointer;margin-bottom:16px}
+.budget-inline{display:flex;gap:8px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
+.budget-inline input{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;width:160px;font-size:.95rem}
+.budget-inline button,.btn{background:var(--primary);color:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:600;transition:background .2s}
+.budget-inline button:hover,.btn:hover{background:var(--primary-light)}
+.btn-outline{background:none;border:2px solid var(--primary);color:var(--primary)}
+.btn-outline:hover{background:var(--primary);color:#fff}
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+@media(max-width:700px){.charts-row{grid-template-columns:1fr}.header{flex-wrap:wrap;height:auto;padding:10px 16px;gap:8px}.nav{flex-wrap:wrap}}
+.chart-box{position:relative;min-height:220px}
+.chart-box canvas{width:100%!important;max-height:280px}
+.tx-list{list-style:none}
+.tx-item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.tx-item:last-child{border-bottom:none}
+.tx-left{display:flex;align-items:center;gap:10px}
+.tx-emoji{font-size:1.3rem;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:var(--bg)}
+.tx-desc{font-weight:500;font-size:.95rem}
+.tx-meta{font-size:.78rem;color:var(--text-muted)}
+.tx-amount{font-weight:700;font-size:1rem;white-space:nowrap}
+.tx-del{background:none;border:none;color:var(--cat-health);cursor:pointer;font-size:1.1rem;padding:4px 8px;border-radius:6px;transition:background .2s}
+.tx-del:hover{background:rgba(231,76,60,.1)}
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.login-card{background:var(--card);border-radius:var(--radius);padding:40px 36px;box-shadow:0 8px 40px rgba(0,0,0,.1);width:100%;max-width:380px;text-align:center}
+.login-card h1{color:var(--primary);margin-bottom:6px;font-size:2rem}
+.login-card p{color:var(--text-muted);margin-bottom:24px;font-size:.9rem}
+.login-card input{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.95rem;margin-bottom:12px}
+.login-card .btn{width:100%;padding:13px;font-size:1rem;margin-top:4px}
+.login-card .error{color:var(--cat-health);font-size:.85rem;margin-bottom:8px}
+.form-group{margin-bottom:16px;text-align:left}
+.form-group label{display:block;font-weight:600;margin-bottom:6px;font-size:.9rem}
+.form-group input,.form-group select{width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.95rem}
+.grid-4{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:18px}
+.heatmap-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.heatmap-cell{aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:#555;cursor:default;transition:transform .15s}
+.heatmap-cell:hover{transform:scale(1.15)}
+.heatmap-header{font-weight:600;font-size:.7rem;color:var(--text-muted);aspect-ratio:auto}
+.empty-state{text-align:center;padding:40px 20px;color:var(--text-muted)}
+.count-badge{font-size:.85rem;color:var(--text-muted);margin-bottom:10px}
+</style>
+</head>
+<body>
 
-    <!-- TODO: Update og:title to match your application name -->
-    <meta property="og:title" content="Lovable App" />
-    <meta property="og:description" content="Lovable Generated Project" />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+<div id="app"></div>
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@Lovable" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-  </head>
+<script>
+(function(){
+"use strict";
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+const USERS={admin:"1234",john:"pass"};
+const CATEGORIES=[
+{name:"Food & Dining",emoji:"🍽",color:"#e67e22"},
+{name:"Transport",emoji:"🚗",color:"#3498db"},
+{name:"Shopping",emoji:"🛍",color:"#9b59b6"},
+{name:"Utilities",emoji:"💡",color:"#1abc9c"},
+{name:"Health",emoji:"💊",color:"#e74c3c"},
+{name:"Entertainment",emoji:"🎬",color:"#f39c12"},
+{name:"Education",emoji:"📚",color:"#2980b9"},
+{name:"Other",emoji:"💼",color:"#888780"}
+];
+const catMap=Object.fromEntries(CATEGORIES.map(c=>[c.name,c]));
+const fmt=n=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',minimumFractionDigits:0,maximumFractionDigits:0}).format(n);
+
+let currentUser=null;
+let activeTab="dashboard";
+let charts=[];
+const app=document.getElementById("app");
+
+function getMonthOptions(){
+const opts=[];
+const now=new Date();
+for(let i=0;i<7;i++){
+const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+const key=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
+const label=d.toLocaleString("en-US",{month:"long",year:"numeric"});
+opts.push({key,label});
+}
+return opts;
+}
+
+function getTx(){
+try{return JSON.parse(localStorage.getItem("sw_tx_"+currentUser)||"[]")}catch{return[]}
+}
+function saveTx(arr){localStorage.setItem("sw_tx_"+currentUser,JSON.stringify(arr))}
+function getBudgets(){
+try{return JSON.parse(localStorage.getItem("sw_bg_"+currentUser)||"{}")}catch{return{}}
+}
+function saveBudgets(obj){localStorage.setItem("sw_bg_"+currentUser,JSON.stringify(obj))}
+
+function filterByMonth(txs,monthKey){
+return txs.filter(t=>t.date&&t.date.startsWith(monthKey));
+}
+
+function destroyCharts(){
+charts.forEach(c=>{try{c.destroy()}catch(e){}});
+charts=[];
+}
+
+function render(){
+destroyCharts();
+if(!currentUser){renderLogin();return;}
+app.innerHTML="";
+app.appendChild(renderHeader());
+const main=document.createElement("div");
+main.className="main";
+if(activeTab==="dashboard")renderDashboard(main);
+else if(activeTab==="add")renderAdd(main);
+else if(activeTab==="analytics")renderAnalytics(main);
+else if(activeTab==="history")renderHistory(main);
+app.appendChild(main);
+}
+
+function renderLogin(){
+app.innerHTML=`
+<div class="login-wrap">
+<div class="login-card">
+<h1>Spendwise</h1>
+<p>Track your expenses beautifully</p>
+<div id="login-error" class="error" style="display:none"></div>
+<input id="l-user" placeholder="Username" autocomplete="off">
+<input id="l-pass" type="password" placeholder="Password">
+<button class="btn" id="l-btn">Sign In</button>
+<p style="margin-top:16px;font-size:.78rem;color:#999">Demo: admin/1234 or john/pass</p>
+</div>
+</div>`;
+const btn=document.getElementById("l-btn");
+const doLogin=()=>{
+const u=document.getElementById("l-user").value.trim();
+const p=document.getElementById("l-pass").value;
+if(USERS[u]&&USERS[u]===p){currentUser=u;activeTab="dashboard";render();}
+else{const e=document.getElementById("login-error");e.textContent="Invalid credentials";e.style.display="block";}
+};
+btn.onclick=doLogin;
+document.getElementById("l-pass").onkeydown=e=>{if(e.key==="Enter")doLogin()};
+document.getElementById("l-user").onkeydown=e=>{if(e.key==="Enter")document.getElementById("l-pass").focus()};
+}
+
+function renderHeader(){
+const h=document.createElement("div");
+h.className="header";
+h.innerHTML=`
+<div class="logo">Spendwise</div>
+<div class="nav">
+<button data-tab="dashboard" class="${activeTab==="dashboard"?"active":""}">Dashboard</button>
+<button data-tab="add" class="${activeTab==="add"?"active":""}">Add Expense</button>
+<button data-tab="analytics" class="${activeTab==="analytics"?"active":""}">Analytics</button>
+<button data-tab="history" class="${activeTab==="history"?"active":""}">History</button>
+</div>
+<div class="user-info">
+<span>👤 ${currentUser}</span>
+<button id="sign-out">Sign Out</button>
+</div>`;
+h.querySelectorAll(".nav button").forEach(b=>{
+b.onclick=()=>{activeTab=b.dataset.tab;render();}
+});
+h.querySelector("#sign-out").onclick=()=>{currentUser=null;render()};
+return h;
+}
+
+function monthSelect(parent,selectedMonth,onChange){
+const sel=document.createElement("select");
+sel.className="month-select";
+getMonthOptions().forEach(o=>{
+const opt=document.createElement("option");
+opt.value=o.key;opt.textContent=o.label;
+if(o.key===selectedMonth)opt.selected=true;
+sel.appendChild(opt);
+});
+sel.onchange=()=>onChange(sel.value);
+parent.appendChild(sel);
+return sel;
+}
+
+function renderDashboard(main){
+let selMonth=getMonthOptions()[0].key;
+const wrap=document.createElement("div");
+main.appendChild(wrap);
+
+function draw(){
+destroyCharts();
+wrap.innerHTML="";
+monthSelect(wrap,selMonth,v=>{selMonth=v;draw()});
+
+const txs=filterByMonth(getTx(),selMonth);
+const budgets=getBudgets();
+const budget=budgets[selMonth]||0;
+const spent=txs.reduce((s,t)=>s+t.amount,0);
+const remaining=budget-spent;
+const pct=budget>0?Math.min((spent/budget)*100,100):0;
+
+const grid=document.createElement("div");grid.className="grid-3";
+grid.innerHTML=`
+<div class="card stat-card"><div class="label">Monthly Budget</div><div class="value green">${fmt(budget)}</div></div>
+<div class="card stat-card"><div class="label">Total Spent</div><div class="value ${spent>budget&&budget>0?'red':''}">${fmt(spent)}</div></div>
+<div class="card stat-card"><div class="label">Remaining</div><div class="value ${remaining<0?'red':'green'}">${fmt(remaining)}</div></div>`;
+wrap.appendChild(grid);
+
+const pCard=document.createElement("div");pCard.className="card";
+const pColor=pct<50?"#2d5a27":pct<80?"#e67e22":"#e74c3c";
+pCard.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:.85rem;font-weight:600"><span>Spending Progress</span><span>${pct.toFixed(0)}%</span></div>
+<div class="progress-wrap"><div class="progress-bar" style="width:${pct}%;background:${pColor}"></div></div>`;
+wrap.appendChild(pCard);
+
+const bCard=document.createElement("div");bCard.className="card";
+bCard.innerHTML=`<h3>Set Budget</h3><div class="budget-inline"><input type="number" id="b-input" placeholder="Enter budget amount" value="${budget||''}"><button id="b-save">Save Budget</button></div>`;
+wrap.appendChild(bCard);
+bCard.querySelector("#b-save").onclick=()=>{
+const v=parseFloat(bCard.querySelector("#b-input").value);
+if(!isNaN(v)&&v>=0){const b=getBudgets();b[selMonth]=v;saveBudgets(b);draw();}
+};
+
+const crow=document.createElement("div");crow.className="charts-row";
+const donutCard=document.createElement("div");donutCard.className="card";
+donutCard.innerHTML=`<h3>Spending by Category</h3><div class="chart-box"><canvas id="donut-chart"></canvas></div>`;
+crow.appendChild(donutCard);
+const barCard=document.createElement("div");barCard.className="card";
+barCard.innerHTML=`<h3>Daily Spending</h3><div class="chart-box"><canvas id="daily-chart"></canvas></div>`;
+crow.appendChild(barCard);
+wrap.appendChild(crow);
+
+const rCard=document.createElement("div");rCard.className="card";
+rCard.innerHTML=`<h3>Recent Transactions</h3>`;
+const recent=txs.sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id).slice(0,6);
+if(recent.length===0){rCard.innerHTML+=`<div class="empty-state">No transactions this month</div>`;}
+else{
+const ul=document.createElement("ul");ul.className="tx-list";
+recent.forEach(t=>{
+const cat=catMap[t.category]||catMap["Other"];
+const li=document.createElement("li");li.className="tx-item";
+li.innerHTML=`<div class="tx-left"><span class="tx-emoji">${cat.emoji}</span><div><div class="tx-desc">${esc(t.desc)}</div><div class="tx-meta">${t.category} · ${t.date}</div></div></div><div class="tx-amount" style="color:${cat.color}">${fmt(t.amount)}</div>`;
+ul.appendChild(li);
+});
+rCard.appendChild(ul);
+}
+wrap.appendChild(rCard);
+
+const expBtn=document.createElement("button");expBtn.className="btn";expBtn.textContent="📄 Export PDF";
+expBtn.onclick=()=>exportPDF(selMonth);
+wrap.appendChild(expBtn);
+
+requestAnimationFrame(()=>{
+const catData={};
+txs.forEach(t=>{catData[t.category]=(catData[t.category]||0)+t.amount});
+const catNames=Object.keys(catData);
+if(catNames.length>0){
+const c=new Chart(document.getElementById("donut-chart"),{
+type:"doughnut",
+data:{labels:catNames,datasets:[{data:catNames.map(n=>catData[n]),backgroundColor:catNames.map(n=>(catMap[n]||catMap["Other"]).color),borderWidth:2,borderColor:"#fff"}]},
+options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{font:{family:"DM Sans",size:11}}}}}
+});
+charts.push(c);
+}
+
+const [y,m]=selMonth.split("-").map(Number);
+const daysInMonth=new Date(y,m,0).getDate();
+const dailyData=new Array(daysInMonth).fill(0);
+txs.forEach(t=>{const d=parseInt(t.date.split("-")[2]);if(d>=1&&d<=daysInMonth)dailyData[d-1]+=t.amount});
+const c2=new Chart(document.getElementById("daily-chart"),{
+type:"bar",
+data:{labels:Array.from({length:daysInMonth},(_,i)=>i+1),datasets:[{label:"Spent",data:dailyData,backgroundColor:"rgba(45,90,39,.6)",borderRadius:4}]},
+options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{callback:v=>fmt(v),font:{family:"DM Sans"}}},x:{ticks:{font:{family:"DM Sans",size:9}}}},plugins:{legend:{display:false}}}
+});
+charts.push(c2);
+});
+}
+draw();
+}
+
+function renderAdd(main){
+const card=document.createElement("div");card.className="card";
+card.style.maxWidth="480px";card.style.margin="0 auto";
+const today=new Date().toISOString().split("T")[0];
+card.innerHTML=`<h3 style="margin-bottom:20px">Add New Expense</h3>
+<div class="form-group"><label>Description</label><input id="a-desc" placeholder="What did you spend on?"></div>
+<div class="form-group"><label>Amount (₹)</label><input id="a-amt" type="number" placeholder="0" min="0"></div>
+<div class="form-group"><label>Category</label><select id="a-cat">${CATEGORIES.map(c=>`<option value="${c.name}">${c.emoji} ${c.name}</option>`).join("")}</select></div>
+<div class="form-group"><label>Date</label><input id="a-date" type="date" value="${today}"></div>
+<button class="btn" style="width:100%;padding:13px;font-size:1rem" id="a-save">Add Expense</button>`;
+main.appendChild(card);
+card.querySelector("#a-save").onclick=()=>{
+const desc=card.querySelector("#a-desc").value.trim();
+const amount=parseFloat(card.querySelector("#a-amt").value);
+const category=card.querySelector("#a-cat").value;
+const date=card.querySelector("#a-date").value;
+if(!desc||isNaN(amount)||amount<=0||!date)return alert("Please fill all fields correctly.");
+const txs=getTx();
+txs.push({id:Date.now(),desc,amount,category,date});
+saveTx(txs);
+activeTab="dashboard";render();
+};
+}
+
+function renderAnalytics(main){
+let selMonth=getMonthOptions()[0].key;
+const wrap=document.createElement("div");
+main.appendChild(wrap);
+
+function draw(){
+destroyCharts();
+wrap.innerHTML="";
+monthSelect(wrap,selMonth,v=>{selMonth=v;draw()});
+
+const allTx=getTx();
+const txs=filterByMonth(allTx,selMonth);
+const spent=txs.reduce((s,t)=>s+t.amount,0);
+const [y,m]=selMonth.split("-").map(Number);
+const daysInMonth=new Date(y,m,0).getDate();
+
+const catSpend={};txs.forEach(t=>{catSpend[t.category]=(catSpend[t.category]||0)+t.amount});
+const topCat=Object.entries(catSpend).sort((a,b)=>b[1]-a[1])[0];
+const biggest=txs.length>0?Math.max(...txs.map(t=>t.amount)):0;
+
+const g=document.createElement("div");g.className="grid-4";
+g.innerHTML=`
+<div class="card stat-card"><div class="label">Top Category</div><div class="value" style="font-size:1.1rem">${topCat?topCat[0]:"—"}</div></div>
+<div class="card stat-card"><div class="label">Avg Daily Spend</div><div class="value green">${fmt(spent/daysInMonth)}</div></div>
+<div class="card stat-card"><div class="label">Transactions</div><div class="value">${txs.length}</div></div>
+<div class="card stat-card"><div class="label">Biggest Expense</div><div class="value orange">${fmt(biggest)}</div></div>`;
+wrap.appendChild(g);
+
+const lineCard=document.createElement("div");lineCard.className="card";
+lineCard.innerHTML=`<h3>Monthly Trend (6 months)</h3><div class="chart-box"><canvas id="trend-chart"></canvas></div>`;
+wrap.appendChild(lineCard);
+
+const hbarCard=document.createElement("div");hbarCard.className="card";
+hbarCard.innerHTML=`<h3>Category Breakdown</h3><div class="chart-box"><canvas id="cat-bar-chart"></canvas></div>`;
+const groupCard=document.createElement("div");groupCard.className="card";
+groupCard.innerHTML=`<h3>Budget vs Spent</h3><div class="chart-box"><canvas id="bvs-chart"></canvas></div>`;
+const crow=document.createElement("div");crow.className="charts-row";
+crow.appendChild(hbarCard);crow.appendChild(groupCard);
+wrap.appendChild(crow);
+
+const heatCard=document.createElement("div");heatCard.className="card";
+heatCard.innerHTML=`<h3>Daily Spending Heatmap</h3>`;
+const heatGrid=document.createElement("div");heatGrid.className="heatmap-grid";
+const dayNames=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+dayNames.forEach(d=>{const c=document.createElement("div");c.className="heatmap-header";c.textContent=d;heatGrid.appendChild(c)});
+
+const dailySpend=new Array(daysInMonth).fill(0);
+txs.forEach(t=>{const d=parseInt(t.date.split("-")[2]);if(d>=1&&d<=daysInMonth)dailySpend[d-1]+=t.amount});
+const maxDay=Math.max(...dailySpend,1);
+const firstDow=new Date(y,m-1,1).getDay();
+for(let i=0;i<firstDow;i++){const c=document.createElement("div");c.className="heatmap-cell";c.style.background="transparent";heatGrid.appendChild(c)}
+for(let d=1;d<=daysInMonth;d++){
+const c=document.createElement("div");c.className="heatmap-cell";
+const v=dailySpend[d-1];
+if(v===0){c.style.background="#eceae3";c.textContent=d;}
+else{const intensity=Math.max(0.15,v/maxDay);c.style.background=`rgba(231,76,60,${intensity})`;c.style.color=intensity>0.5?"#fff":"#555";c.textContent=d;c.title=`${fmt(v)}`;}
+heatGrid.appendChild(c);
+}
+heatCard.appendChild(heatGrid);
+wrap.appendChild(heatCard);
+
+requestAnimationFrame(()=>{
+const months=getMonthOptions().slice(0,6).reverse();
+const budgets=getBudgets();
+const spentArr=months.map(mo=>filterByMonth(allTx,mo.key).reduce((s,t)=>s+t.amount,0));
+const budgetArr=months.map(mo=>budgets[mo.key]||0);
+const c1=new Chart(document.getElementById("trend-chart"),{
+type:"line",
+data:{labels:months.map(mo=>mo.label.split(" ")[0]),datasets:[
+{label:"Spent",data:spentArr,borderColor:"#2d5a27",backgroundColor:"rgba(45,90,39,.1)",fill:true,tension:.3,pointRadius:4},
+{label:"Budget",data:budgetArr,borderColor:"#e67e22",borderDash:[6,3],pointRadius:3,fill:false}
+]},
+options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{callback:v=>fmt(v),font:{family:"DM Sans"}}}},plugins:{legend:{labels:{font:{family:"DM Sans"}}}}}
+});
+charts.push(c1);
+
+const catNames=Object.keys(catSpend);
+if(catNames.length>0){
+const c2=new Chart(document.getElementById("cat-bar-chart"),{
+type:"bar",
+data:{labels:catNames,datasets:[{data:catNames.map(n=>catSpend[n]),backgroundColor:catNames.map(n=>(catMap[n]||catMap["Other"]).color),borderRadius:4}]},
+options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,scales:{x:{beginAtZero:true,ticks:{callback:v=>fmt(v),font:{family:"DM Sans"}}}},plugins:{legend:{display:false}}}
+});
+charts.push(c2);
+}
+
+const c3=new Chart(document.getElementById("bvs-chart"),{
+type:"bar",
+data:{labels:months.map(mo=>mo.label.split(" ")[0]),datasets:[
+{label:"Budget",data:budgetArr,backgroundColor:"rgba(45,90,39,.3)",borderColor:"#2d5a27",borderWidth:1,borderRadius:4},
+{label:"Spent",data:spentArr,backgroundColor:"rgba(231,76,60,.6)",borderColor:"#e74c3c",borderWidth:1,borderRadius:4}
+]},
+options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{callback:v=>fmt(v),font:{family:"DM Sans"}}}},plugins:{legend:{labels:{font:{family:"DM Sans"}}}}}
+});
+charts.push(c3);
+});
+}
+draw();
+}
+
+function renderHistory(main){
+let selMonth=getMonthOptions()[0].key;
+const wrap=document.createElement("div");
+main.appendChild(wrap);
+
+function draw(){
+wrap.innerHTML="";
+monthSelect(wrap,selMonth,v=>{selMonth=v;draw()});
+const txs=filterByMonth(getTx(),selMonth).sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id);
+const card=document.createElement("div");card.className="card";
+card.innerHTML=`<h3>Transaction History</h3><div class="count-badge">${txs.length} transaction${txs.length!==1?"s":""}</div>`;
+if(txs.length===0){card.innerHTML+=`<div class="empty-state">No transactions this month</div>`;}
+else{
+const ul=document.createElement("ul");ul.className="tx-list";
+txs.forEach(t=>{
+const cat=catMap[t.category]||catMap["Other"];
+const li=document.createElement("li");li.className="tx-item";
+li.innerHTML=`<div class="tx-left"><span class="tx-emoji">${cat.emoji}</span><div><div class="tx-desc">${esc(t.desc)}</div><div class="tx-meta">${t.category} · ${t.date}</div></div></div>
+<div style="display:flex;align-items:center;gap:10px"><span class="tx-amount" style="color:${cat.color}">${fmt(t.amount)}</span><button class="tx-del" title="Delete">✕</button></div>`;
+li.querySelector(".tx-del").onclick=()=>{
+const all=getTx().filter(x=>x.id!==t.id);
+saveTx(all);draw();
+};
+ul.appendChild(li);
+});
+card.appendChild(ul);
+}
+wrap.appendChild(card);
+const expBtn=document.createElement("button");expBtn.className="btn";expBtn.textContent="📄 Export PDF";expBtn.style.marginTop="8px";
+expBtn.onclick=()=>exportPDF(selMonth);
+wrap.appendChild(expBtn);
+}
+draw();
+}
+
+function exportPDF(monthKey){
+const {jsPDF}=window.jspdf;
+const doc=new jsPDF();
+const txs=filterByMonth(getTx(),monthKey).sort((a,b)=>a.date.localeCompare(b.date));
+const budgets=getBudgets();
+const budget=budgets[monthKey]||0;
+const spent=txs.reduce((s,t)=>s+t.amount,0);
+const remaining=budget-spent;
+const pw=doc.internal.pageSize.getWidth();
+const monthLabel=getMonthOptions().find(o=>o.key===monthKey)?.label||monthKey;
+
+doc.setFillColor(30,61,26);
+doc.rect(0,0,pw,38,"F");
+doc.setTextColor(255);doc.setFontSize(20);doc.setFont("helvetica","bold");
+doc.text("Spendwise",14,18);
+doc.setFontSize(11);doc.setFont("helvetica","normal");
+doc.text("Expense Report - "+monthLabel,14,27);
+doc.setFontSize(9);
+doc.text("User: "+currentUser+" | Generated: "+new Date().toLocaleDateString("en-IN"),14,34);
+
+let bx=14,by=46,bw=(pw-38)/3;
+doc.setTextColor(50);doc.setFontSize(9);
+[["Budget",fmt(budget)],["Spent",fmt(spent)],["Remaining",fmt(remaining)]].forEach(function(item,i){
+doc.setDrawColor(200);doc.setFillColor(247,246,242);
+doc.roundedRect(bx+i*(bw+5),by,bw,22,3,3,"FD");
+doc.setFont("helvetica","normal");doc.setFontSize(8);doc.text(item[0],bx+i*(bw+5)+4,by+8);
+doc.setFont("helvetica","bold");doc.setFontSize(12);doc.text(item[1],bx+i*(bw+5)+4,by+18);
+});
+
+let ty=78;
+doc.setFillColor(45,90,39);doc.rect(14,ty,pw-28,9,"F");
+doc.setTextColor(255);doc.setFontSize(9);doc.setFont("helvetica","bold");
+doc.text("Date",16,ty+6.5);doc.text("Description",46,ty+6.5);doc.text("Category",110,ty+6.5);doc.text("Amount",160,ty+6.5);
+ty+=9;
+
+doc.setFont("helvetica","normal");doc.setTextColor(50);
+txs.forEach(function(t,i){
+if(ty>270){doc.addPage();ty=20;
+doc.setFillColor(45,90,39);doc.rect(14,ty,pw-28,9,"F");
+doc.setTextColor(255);doc.setFontSize(9);doc.setFont("helvetica","bold");
+doc.text("Date",16,ty+6.5);doc.text("Description",46,ty+6.5);doc.text("Category",110,ty+6.5);doc.text("Amount",160,ty+6.5);
+ty+=9;doc.setFont("helvetica","normal");doc.setTextColor(50);
+}
+if(i%2===0){doc.setFillColor(247,246,242);doc.rect(14,ty,pw-28,8,"F");}
+doc.setFontSize(8);
+doc.text(t.date,16,ty+5.5);
+doc.text(t.desc.substring(0,30),46,ty+5.5);
+doc.text(t.category,110,ty+5.5);
+doc.text(fmt(t.amount),160,ty+5.5);
+ty+=8;
+});
+
+doc.setFillColor(45,90,39);doc.rect(14,ty,pw-28,9,"F");
+doc.setTextColor(255);doc.setFont("helvetica","bold");doc.setFontSize(9);
+doc.text("Total",16,ty+6.5);doc.text(fmt(spent),160,ty+6.5);
+
+const pages=doc.internal.getNumberOfPages();
+for(let p=1;p<=pages;p++){
+doc.setPage(p);doc.setFontSize(8);doc.setTextColor(150);
+doc.text("Page "+p+" of "+pages,pw/2,doc.internal.pageSize.getHeight()-8,{align:"center"});
+}
+
+doc.save("Spendwise_"+monthKey+"_"+currentUser+".pdf");
+}
+
+function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML}
+
+render();
+})();
+</script>
+</body>
 </html>
