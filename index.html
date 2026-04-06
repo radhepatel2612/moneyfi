@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Spendwise — Expense Tracker</title>
-<meta name="description" content="Spendwise: A beautiful, fully client-side expense tracker with analytics and PDF export.">
+<title>MoneyFi — Expense Tracker</title>
+<meta name="description" content="MoneyFi: A beautiful, fully client-side expense tracker with analytics and PDF export.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -81,10 +81,10 @@ h1,h2,h3{font-family:'Playfair Display',serif;font-weight:700}
 .empty-state{text-align:center;padding:40px 20px;color:var(--text-muted)}
 .count-badge{font-size:.85rem;color:var(--text-muted);margin-bottom:10px}
 </style>
-  <meta property="og:title" content="Spendwise — Expense Tracker">
-  <meta name="twitter:title" content="Spendwise — Expense Tracker">
-  <meta property="og:description" content="Spendwise: A beautiful, fully client-side expense tracker with analytics and PDF export.">
-  <meta name="twitter:description" content="Spendwise: A beautiful, fully client-side expense tracker with analytics and PDF export.">
+  <meta property="og:title" content="MoneyFi — Expense Tracker">
+  <meta name="twitter:title" content="MoneyFi — Expense Tracker">
+  <meta property="og:description" content="MoneyFi: A beautiful, fully client-side expense tracker with analytics and PDF export.">
+  <meta name="twitter:description" content="MoneyFi: A beautiful, fully client-side expense tracker with analytics and PDF export.">
   <meta property="og:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b5c6f701-2af1-4b5b-8c88-de056e9343ff/id-preview-8703294a--640d1e01-724d-4d7a-aba4-7eb0dfcd5f9d.lovable.app-1775459756712.png">
   <meta name="twitter:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b5c6f701-2af1-4b5b-8c88-de056e9343ff/id-preview-8703294a--640d1e01-724d-4d7a-aba4-7eb0dfcd5f9d.lovable.app-1775459756712.png">
   <meta name="twitter:card" content="summary_large_image">
@@ -167,7 +167,7 @@ function renderLogin(){
 app.innerHTML=`
 <div class="login-wrap">
 <div class="login-card">
-<h1>Spendwise</h1>
+<h1>MoneyFi</h1>
 <p>Track your expenses beautifully</p>
 <div id="login-error" class="error" style="display:none"></div>
 <input id="l-user" placeholder="Username" autocomplete="off">
@@ -201,7 +201,7 @@ function renderHeader(){
 const h=document.createElement("div");
 h.className="header";
 h.innerHTML=`
-<div class="logo">Spendwise</div>
+<div class="logo">MoneyFi</div>
 <div class="nav">
 <button data-tab="dashboard" class="${activeTab==="dashboard"?"active":""}">Dashboard</button>
 <button data-tab="add" class="${activeTab==="add"?"active":""}">Add Expense</button>
@@ -501,7 +501,7 @@ const monthLabel=getMonthOptions().find(o=>o.key===monthKey)?.label||monthKey;
 doc.setFillColor(30,61,26);
 doc.rect(0,0,pw,38,"F");
 doc.setTextColor(255);doc.setFontSize(20);doc.setFont("helvetica","bold");
-doc.text("Spendwise",14,18);
+doc.text("MoneyFi",14,18);
 doc.setFontSize(11);doc.setFont("helvetica","normal");
 doc.text("Expense Report - "+monthLabel,14,27);
 doc.setFontSize(9);
@@ -549,7 +549,7 @@ doc.setPage(p);doc.setFontSize(8);doc.setTextColor(150);
 doc.text("Page "+p+" of "+pages,pw/2,doc.internal.pageSize.getHeight()-8,{align:"center"});
 }
 
-doc.save("Spendwise_"+monthKey+"_"+currentUser+".pdf");
+doc.save("MoneyFi_"+monthKey+"_"+currentUser+".pdf");
 }
 
 function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML}
