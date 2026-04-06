@@ -90,7 +90,9 @@ h1,h2,h3{font-family:'Playfair Display',serif;font-weight:700}
 (function(){
 "use strict";
 
-const USERS={admin:"1234",john:"pass"};
+function validatePassword(p){return p.length>=8&&/[A-Z]/.test(p)&&/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(p);}
+function getRegisteredUsers(){try{return JSON.parse(localStorage.getItem("sw_users")||"{}")}catch{return{}}}
+function saveRegisteredUsers(obj){localStorage.setItem("sw_users",JSON.stringify(obj))}
 const CATEGORIES=[
 {name:"Food & Dining",emoji:"🍽",color:"#e67e22"},
 {name:"Transport",emoji:"🚗",color:"#3498db"},
